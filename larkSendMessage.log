@@ -1,0 +1,27 @@
+2025-10-13T23:28:25.078470400 - ===== Bắt đầu chương trình =====
+2025-10-13T23:28:25.081472400 - Java version: 25
+2025-10-13T23:28:25.081472400 - Token chưa được thiết lập!
+2025-10-13T23:28:54.757057600 - ===== Bắt đầu chương trình =====
+2025-10-13T23:28:54.759059500 - Java version: 25
+2025-10-13T23:28:54.759059500 - Token chưa được thiết lập!
+2025-10-13T23:28:59.950593300 - ===== Bắt đầu chương trình =====
+2025-10-13T23:28:59.952594800 - Java version: 25
+2025-10-13T23:28:59.952594800 - Token chưa được thiết lập!
+2025-10-13T23:30:51.996157400 - ===== Bắt đầu chương trình =====
+2025-10-13T23:30:51.998159100 - Java version: 25
+2025-10-13T23:30:51.999160300 - Token đã được thiết lập
+2025-10-13T23:30:52.002163600 - Đang gửi request test tới server...
+2025-10-13T23:30:52.522739 - Response từ server: {"msg":"ok","code":0,"app_access_token":"t-g206adfoDMQYHOY7VSWFJPV3GT3VYQPUPB36NHJI","expire":3189,"tenant_access_token":"t-g206adfoDMQYHOY7VSWFJPV3GT3VYQPUPB36NHJI"}
+2025-10-13T23:30:52.522739 - ===== Kết thúc chương trình =====
+2025-10-13T23:31:16.339886400 - ===== Bắt đầu chương trình =====
+2025-10-13T23:31:16.342890200 - Java version: 25
+2025-10-13T23:31:16.342890200 - Token đã được thiết lập
+2025-10-13T23:31:16.345893100 - Đang gửi request test tới server...
+2025-10-13T23:31:16.751499900 - Response từ server: {"msg":"ok","code":0,"app_access_token":"t-g206adfoDMQYHOY7VSWFJPV3GT3VYQPUPB36NHJI","expire":3164,"tenant_access_token":"t-g206adfoDMQYHOY7VSWFJPV3GT3VYQPUPB36NHJI"}
+2025-10-13T23:31:16.751499900 - ===== Kết thúc chương trình =====
+2025-10-13T23:32:28.963721800 - ===== Bắt đầu chương trình =====
+2025-10-13T23:32:28.965723500 - Java version: 25
+2025-10-13T23:32:28.965723500 - Token đã được thiết lập
+2025-10-13T23:32:28.968726100 - Đang gửi request test tới server...
+2025-10-13T23:32:29.384103700 - Response từ server: {"msg":"ok","code":0,"app_access_token":"t-g206adfoDMQYHOY7VSWFJPV3GT3VYQPUPB36NHJI","expire":3092,"tenant_access_token":"t-g206adfoDMQYHOY7VSWFJPV3GT3VYQPUPB36NHJI"}
+2025-10-13T23:32:29.385104600 - ===== Kết thúc chương trình =====
