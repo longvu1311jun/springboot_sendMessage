@@ -4,6 +4,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 @Controller
 public class LarkSendMessageController {
     @Autowired
@@ -15,10 +17,14 @@ public class LarkSendMessageController {
     }
 
     @PostMapping("/run")
-    public String runMessage(Model model) {
+    public String runMessage(
+            @RequestParam("startDate") String startDate,
+            @RequestParam("endDate") String endDate,
+            @RequestParam("email") String email,
+            Model model) {
         System.out.println("runMessage");
         try {
-            String result = larkSendMessageService.run();
+            String result = larkSendMessageService.run(startDate, endDate, email);
             model.addAttribute("result", result);
         } catch (Exception e) {
             model.addAttribute("result", "Error: " + e.getMessage());

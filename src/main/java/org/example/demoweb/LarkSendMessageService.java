@@ -73,11 +73,15 @@ public class LarkSendMessageService {
         in.close();
 
         JSONObject resp = new JSONObject(sb.toString());
+        System.out.println("API response: " + resp.toString()); // Debug response
+
         JSONArray userList = resp.optJSONObject("data").optJSONArray("user_list");
-        if (userList != null && userList.length() > 0) {
-            return userList.getJSONObject(0).getString("open_id");
+        if (userList != null && userList.length() > 0 && userList.getJSONObject(0).has("user_id")) {
+            String openId = userList.getJSONObject(0).getString("user_id");
+            System.out.println("OpenID: " + openId);
+            return openId;
         } else {
-            throw new RuntimeException("Không tìm thấy open_id cho email: " + email);
+            throw new RuntimeException("Không tìm thấy open_id cho email: " + email + ". Response: " + resp.toString());
         }
     }
 
@@ -107,12 +111,12 @@ public class LarkSendMessageService {
 
         JSONObject resp = new JSONObject(sb.toString());
         JSONArray userList = resp.optJSONObject("data").optJSONArray("user_list");
-        if (userList != null && userList.length() > 0) {
+        if (userList != null && userList.length() > 0 && userList.getJSONObject(0).has("user_id")) {
             String userId = userList.getJSONObject(0).getString("user_id");
             System.out.println("UserID: " + userId);
             return userId;
         } else {
-            throw new RuntimeException("Không tìm thấy user_id cho email: " + email);
+            throw new RuntimeException("Không tìm thấy user_id cho email: " + email + ". Response: " + resp.toString());
         }
     }
 
@@ -163,36 +167,37 @@ public class LarkSendMessageService {
     }
 
     public void sendTextMessage(String token, String openId, String message) throws Exception {
-        URL url = new URL("https://open.larksuite.com/open-apis/im/v1/messages?receive_id_type=open_id");
+        String urlStr = "https://open.larksuite.com/open-apis/im/v1/messages?receive_id_type=open_id";
+        URL url = new URL(urlStr);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("Authorization", "Bearer " + token);
-        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-
-        JSONObject msgContent = new JSONObject();
-        msgContent.put("text", message);
 
         JSONObject body = new JSONObject();
         body.put("receive_id", openId);
         body.put("msg_type", "text");
-        body.put("content", msgContent.toString());
-        System.out.println("send");
+        body.put("content", new JSONObject().put("text", message).toString()); // content là chuỗi JSON
+        body.put("uuid", UUID.randomUUID().toString());
+
         try (OutputStream os = conn.getOutputStream()) {
             os.write(body.toString().getBytes(StandardCharsets.UTF_8));
         }
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        String response = in.readLine();
+        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = in.readLine()) != null) sb.append(line);
         in.close();
 
-        System.out.println("📤 Response gửi tin nhắn: " + response);
+        System.out.println("📤 Response gửi tin nhắn: " + sb.toString());
     }
 
     // Hàm run mới nhận tham số từ controller
     public String run(String startDate, String endDate, String email) throws Exception {
         String token = getTenantAccessToken();
-        String openId = getOpenIdByEmail(token, email);
+        String openId = getOpenIdByEmail(token, email); // Sử dụng openId
         Map<String, List<UserActivity>> userActivityMap = getAllUserActivities(token, startDate, endDate);
 
         LocalDate today = LocalDate.now();
@@ -223,6 +228,7 @@ public class LarkSendMessageService {
         }
 
         StringBuilder msg = new StringBuilder();
+      System.out.println("LongVT\n");
         msg.append("📊 **Báo cáo hoạt động nhân viên**\n\n");
         msg.append(String.format("🚨 Không hoạt động liên tục %d ngày: %d nhân viên\n", INACTIVE_DAYS, inactiveNDays.size()));
         if (!inactiveNDays.isEmpty()) {
@@ -241,7 +247,7 @@ public class LarkSendMessageService {
             }
         }
 
-        sendTextMessage(token, openId, msg.toString());
+        sendTextMessage(token, openId, msg.toString()); // Truyền openId
         return "Message sent successfully!";
     }
 }
