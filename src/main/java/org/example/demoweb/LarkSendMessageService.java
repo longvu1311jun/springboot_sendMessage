@@ -15,8 +15,6 @@ import java.util.*;
 public class LarkSendMessageService {
     private static final String APP_ID = "cli_a8563adbd3b95010";
     private static final String APP_SECRET = "cE1L6Q1GgLF1ZZlovVJmvgY7P7GXSeeR";
-    private static final String LEADER_OPEN_ID = "ou_4cf48041bec4170651def0c025217097";
-
     private static final int INACTIVE_DAYS = Integer.parseInt(System.getenv().getOrDefault("INACTIVE_DAYS", "3"));
 
     public String getTenantAccessToken() throws Exception {
@@ -50,7 +48,76 @@ public class LarkSendMessageService {
         }
     }
 
-    public Map<String, List<UserActivity>> getAllUserActivities(String token) throws Exception {
+    // Lấy open_id từ email
+    public String getOpenIdByEmail(String token, String email) throws Exception {
+        URL url = new URL("https://open.larksuite.com/open-apis/contact/v3/users/batch_get_id?user_id_type=open_id");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Authorization", "Bearer " + token);
+
+        JSONObject body = new JSONObject();
+        JSONArray emails = new JSONArray();
+        emails.put(email);
+        body.put("emails", emails);
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(body.toString().getBytes(StandardCharsets.UTF_8));
+        }
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = in.readLine()) != null) sb.append(line);
+        in.close();
+
+        JSONObject resp = new JSONObject(sb.toString());
+        JSONArray userList = resp.optJSONObject("data").optJSONArray("user_list");
+        if (userList != null && userList.length() > 0) {
+            return userList.getJSONObject(0).getString("open_id");
+        } else {
+            throw new RuntimeException("Không tìm thấy open_id cho email: " + email);
+        }
+    }
+
+    // Lấy user_id từ email
+    public String getUserIdByEmail(String token, String email) throws Exception {
+        URL url = new URL("https://open.larksuite.com/open-apis/contact/v3/users/batch_get_id?user_id_type=user_id");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Authorization", "Bearer " + token);
+
+        JSONObject body = new JSONObject();
+        JSONArray emails = new JSONArray();
+        emails.put(email);
+        body.put("emails", emails);
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(body.toString().getBytes(StandardCharsets.UTF_8));
+        }
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = in.readLine()) != null) sb.append(line);
+        in.close();
+
+        JSONObject resp = new JSONObject(sb.toString());
+        JSONArray userList = resp.optJSONObject("data").optJSONArray("user_list");
+        if (userList != null && userList.length() > 0) {
+            String userId = userList.getJSONObject(0).getString("user_id");
+            System.out.println("UserID: " + userId);
+            return userId;
+        } else {
+            throw new RuntimeException("Không tìm thấy user_id cho email: " + email);
+        }
+    }
+
+    // Truyền ngày bắt đầu, kết thúc vào hàm lấy activity
+    public Map<String, List<UserActivity>> getAllUserActivities(String token, String startDate, String endDate) throws Exception {
         Map<String, List<UserActivity>> userActivityMap = new HashMap<>();
 
         String pageToken = null;
@@ -58,9 +125,8 @@ public class LarkSendMessageService {
 
         while (hasMore) {
             StringBuilder urlBuilder = new StringBuilder("https://open.larksuite.com/open-apis/admin/v1/admin_user_stats?");
-            urlBuilder.append("start_date=2025-10-01&end_date=2025-10-12");
+            urlBuilder.append("start_date=").append(startDate).append("&end_date=").append(endDate);
             if (pageToken != null) urlBuilder.append("&page_token=").append(pageToken);
-            System.out.println("get list"+pageToken);
             URL url = new URL(urlBuilder.toString());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
@@ -123,9 +189,11 @@ public class LarkSendMessageService {
         System.out.println("📤 Response gửi tin nhắn: " + response);
     }
 
-    public String run() throws Exception {
+    // Hàm run mới nhận tham số từ controller
+    public String run(String startDate, String endDate, String email) throws Exception {
         String token = getTenantAccessToken();
-        Map<String, List<UserActivity>> userActivityMap = getAllUserActivities(token);
+        String openId = getOpenIdByEmail(token, email);
+        Map<String, List<UserActivity>> userActivityMap = getAllUserActivities(token, startDate, endDate);
 
         LocalDate today = LocalDate.now();
         LocalDate sevenDaysAgo = today.minusDays(7);
@@ -173,7 +241,7 @@ public class LarkSendMessageService {
             }
         }
 
-        sendTextMessage(token, LEADER_OPEN_ID, msg.toString());
+        sendTextMessage(token, openId, msg.toString());
         return "Message sent successfully!";
     }
 }
