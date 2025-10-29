@@ -33,11 +33,4 @@ public class LarkSendMessageController {
         }
         return "index";
     }
-  @GetMapping("/id/{id}")
-  public String showMessage(@PathVariable("id") String id, Model model) {
-    System.out.println("Nhận được ID: " + id);
-    model.addAttribute("id", id);
-
-    return "getID";
-  }
 }
